@@ -1,0 +1,49 @@
+# rumdl — https://rumdl.dev
+# Discovery order: .rumdl.toml > rumdl.toml > .config/rumdl.toml
+#                  > pyproject.toml [tool.rumdl]
+# The first file found wins, the others are ignored.
+
+[global]
+respect-gitignore = true
+exclude = [
+  # CLAUDE.md is a symlink to AGENTS.md. Without this, every issue is
+  # reported twice, once per path.
+  "CLAUDE.md",
+]
+
+[MD007]
+indent = 2
+
+# Prose follows Semantic Line Breaks (https://sembr.org/).
+# line-length is therefore a guide, not a wrap point: a break must land at the
+# end of a sentence or a clause, never mid-clause to fit the column.
+# Beware: with reflow, `--fix` rewrites prose. Read the diff.
+[MD013]
+line-length = 80
+reflow = true
+reflow-mode = "semantic-line-breaks"
+code-blocks = false                  # never break a command
+code-spans = false
+tables = false                       # a table row is never wrapped
+headings = true
+ignore-link-urls = true              # a long URL must not fail the commit
+
+[MD024]
+siblings-only = true # the same heading under two different parents is fine
+
+[MD025]
+level = 1
+
+# Inline HTML limited to what a README actually needs: collapsible blocks and
+# images. Everything else should be written as markdown.
+[MD033]
+allowed-elements = ["a", "br", "details", "img", "summary"]
+
+[MD029]
+style = "one"
+
+[MD046]
+style = "fenced"
+
+[MD048]
+code-fence-style = "backtick"
