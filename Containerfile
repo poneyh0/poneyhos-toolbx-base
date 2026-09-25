@@ -1,10 +1,20 @@
-FROM registry.fedoraproject.org/fedora-toolbox:44
+FROM registry.fedoraproject.org/fedora-toolbox:44 AS common
+
+LABEL org.opencontainers.image.source=https://github.com/poneyh0/poneyhos-toolbx-base
+
+# starship is not packaged in Fedora, it comes from the atim/starship COPR.
+RUN dnf --assumeyes copr enable atim/starship
+RUN dnf --assumeyes install zsh vim lsd ripgrep fd-find fzf bat jq git-delta \
+                            gh uv ShellCheck shfmt starship
+
+CMD ["/usr/bin/zsh"]
+
+
+FROM common AS dev
 
 RUN dnf group --assumeyes install development-tools c-development && \
     dnf --assumeyes install python3-devel openssl-devel libffi-devel \
-                            git-delta ripgrep fd-find fzf bat jq gh uv \
-                            clang-tools-extra ShellCheck shfmt podman-compose \
-                            zsh lsd vim
+                            clang-tools-extra podman-compose
 
 # pre-commit, installed system-wide.
 # uv tool installs into ~/.local by default, which is /root at build time and
@@ -40,10 +50,7 @@ COPY vulkan/nvidia_icd.x86_64.json /usr/share/vulkan/icd.d/
 RUN dnf --assumeyes install \
         https://github.com/shiftkey/desktop/releases/download/release-3.4.13-linux1/GitHubDesktop-linux-x86_64-3.4.13-linux1.rpm
 
-RUN dnf install --assumeyes --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release
-RUN dnf install --assumeyes ghostty starship
 
-RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+FROM common AS sysadmin
 
-
-CMD ["/usr/bin/zsh"]
+RUN dnf --assumeyes install btop htop ncdu mtr iperf3 nmap bind-utils lsof
