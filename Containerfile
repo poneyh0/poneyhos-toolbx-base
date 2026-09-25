@@ -3,9 +3,10 @@ FROM registry.fedoraproject.org/fedora-toolbox:44 AS common
 LABEL org.opencontainers.image.source=https://github.com/poneyh0/poneyhos-toolbx-base
 
 # starship is not packaged in Fedora, it comes from the atim/starship COPR.
-RUN dnf --assumeyes copr enable atim/starship
-RUN dnf --assumeyes install zsh vim lsd ripgrep fd-find fzf bat jq git-delta \
-                            gh uv ShellCheck shfmt starship
+RUN dnf --assumeyes copr enable atim/starship && dnf --assumeyes install zsh \
+    vim lsd ripgrep fd-find fzf bat jq git-delta gh uv ShellCheck shfmt \
+    starship && \
+    dnf clean all
 
 CMD ["/usr/bin/zsh"]
 
@@ -14,7 +15,8 @@ FROM common AS dev
 
 RUN dnf group --assumeyes install development-tools c-development && \
     dnf --assumeyes install python3-devel openssl-devel libffi-devel \
-                            clang-tools-extra podman-compose
+                            clang-tools-extra podman-compose && \
+    dnf clean all
 
 # pre-commit, installed system-wide.
 # uv tool installs into ~/.local by default, which is /root at build time and
@@ -29,10 +31,12 @@ RUN uv tool install pre-commit
 # into a home directory at build time is simply invisible from inside the
 # container. install.sh targets ~/.local, so it cannot be used here.
 RUN dnf --assumeyes install vulkan-loader mesa-vulkan-drivers && \
-    curl -fsSL https://zed.dev/api/releases/stable/latest/zed-linux-x86_64.tar.gz \
-        | tar -xz -C /opt && \
-    ln -s /opt/zed.app/bin/zed /usr/local/bin/zed
-
+    curl -fsSL -o /tmp/zed.tar.gz \
+        https://zed.dev/api/releases/stable/latest/zed-linux-x86_64.tar.gz && \
+    tar -xzf /tmp/zed.tar.gz -C /opt && \
+    rm /tmp/zed.tar.gz && \
+    ln -s /opt/zed.app/bin/zed /usr/local/bin/zed && \
+    dnf clean all
 # The container runtime bind-mounts the host NVIDIA userspace driver into the
 # container (libGLX_nvidia and around fifty other files), but not the Vulkan ICD
 # manifest that declares it. Without this file the loader only ever finds
@@ -48,9 +52,10 @@ COPY vulkan/nvidia_icd.x86_64.json /usr/share/vulkan/icd.d/
 # runs `git commit` without ever seeing the hooks, and commits straight past
 # them — silently.
 RUN dnf --assumeyes install \
-        https://github.com/shiftkey/desktop/releases/download/release-3.4.13-linux1/GitHubDesktop-linux-x86_64-3.4.13-linux1.rpm
-
+        https://github.com/shiftkey/desktop/releases/download/release-3.4.13-linux1/GitHubDesktop-linux-x86_64-3.4.13-linux1.rpm && \
+    dnf clean all
 
 FROM common AS sysadmin
 
-RUN dnf --assumeyes install btop htop ncdu mtr iperf3 nmap bind-utils lsof
+RUN dnf --assumeyes install btop htop ncdu mtr iperf3 nmap bind-utils lsof && \
+    dnf clean all
