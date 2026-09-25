@@ -1,0 +1,60 @@
+name: Build container images
+on:
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '05 10 * * 1' # 10:05am UTC every Monday
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/README.md'
+  workflow_dispatch:
+env:
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}" # do not edit
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build_push:
+    name: Build and push images
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Prepare environment
+        run: |
+          # Lowercase the image uri,
+          # see https://github.com/macbre/push-to-ghcr/issues/12
+          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> "$GITHUB_ENV"
+          echo "DATE_TAG=$(date -u +%Y%m%d)" >> "$GITHUB_ENV"
+      # The second build reuses the common stage from the local cache.
+      - name: Build images
+        run: |
+          set -euo pipefail
+          for target in dev sysadmin; do
+            podman build --target "$target" \
+              -t "poneyhos-toolbx-$target:latest" \
+              -t "poneyhos-toolbx-$target:$DATE_TAG" \
+              .
+          done
+      # Pull requests build only: nothing is published under the owner's name.
+      # A pull request runs on refs/pull/<n>/merge, never on refs/heads/main.
+      - name: Push to GHCR
+        if: github.ref == 'refs/heads/main'
+        env:
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$REGISTRY_PASSWORD" \
+            | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for target in dev sysadmin; do
+            for tag in latest "$DATE_TAG"; do
+              podman push "poneyhos-toolbx-$target:$tag" \
+                "$IMAGE_REGISTRY/poneyhos-toolbx-$target:$tag"
+            done
+          done
