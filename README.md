@@ -13,11 +13,11 @@ Both are rebuilt every week and published on GHCR.
 ### Use a published image
 
 ```shell
-toolbox create --image ghcr.io/poneyh0/poneyhos-toolbx-dev:latest $toolbox-name
-toolbox create --image ghcr.io/poneyh0/poneyhos-toolbx-sysadmin:latest $toolbox-name
+toolbox create --image ghcr.io/poneyh0/poneyhos-toolbx-dev:latest dev
+toolbox create --image ghcr.io/poneyh0/poneyhos-toolbx-sysadmin:latest sysadmin
 ```
 
-Where `$toolbox-name` is the name you want to give to your toolbox container.
+The last argument is the name of the toolbox container.
 
 Every build is also tagged with its date, as `YYYYMMDD`.
 Use such a tag instead of `latest` to go back to a previous build.
@@ -37,8 +37,8 @@ Without `--target`, `podman build .` builds the last stage, `sysadmin`.
 Then create the toolbox container from the local image:
 
 ```shell
-toolbox create --image localhost/poneyhos-toolbx-dev $toolbox-name
-toolbox create --image localhost/poneyhos-toolbx-sysadmin $toolbox-name
+toolbox create --image localhost/poneyhos-toolbx-dev dev
+toolbox create --image localhost/poneyhos-toolbx-sysadmin sysadmin
 ```
 
 ## Tools
