@@ -30,7 +30,7 @@ repos:
       - id: detect-private-key
         name: "🔐 Security - Detect private keys"
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.19.0
+    rev: v4.19.1
     hooks:
       - id: commitizen
         name: "🌲 Git - Ensure commit follows Conventional Commits"
@@ -41,7 +41,7 @@ repos:
       - id: gitleaks
         name: "🔐 Security - Detect hardcoded secrets"
   - repo: https://github.com/rvben/rumdl-pre-commit
-    rev: v0.2.77
+    rev: v0.2.78
     hooks:
       - id: rumdl
         name: "📄 Markdown - Lint markdown"
@@ -58,7 +58,7 @@ repos:
       - id: yamlfmt
         name: "⚙️ Yaml - Format Yaml file"
   - repo: https://github.com/crate-ci/typos
-    rev: v1.50.3
+    rev: typos-dict-v0.14.2
     hooks:
       - id: typos
         name: "⌨️ Typos - Look for spelling mistakes"
